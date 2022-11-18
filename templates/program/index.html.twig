@@ -1,7 +1,19 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Wild Series{% endblock %}
+{% block title %}All programs{% endblock %}
 
 {% block body %}
-<h1>{{ website }} index</h1>
+    <h1>Toutes les séries disponibles</h1>
+    {% for program in programs %}
+        <h2>{{ loop.index }} - {{ program.title }} ({{ program.category.name }})</h2>
+        <img src="{{ program.poster }}" alt="Poster de {{ program.title }}"/>
+        <p>
+            {{ program.synopsis }}
+            <a href="{{ path('program_show', {id: program.id}) }}">Voir plus</a>
+        </p>
+    {% else %}
+        Aucune série disponible
+    {% endfor %}
+
+    <a href="{{ path('app_index') }}">Retour</a>
 {% endblock %}
