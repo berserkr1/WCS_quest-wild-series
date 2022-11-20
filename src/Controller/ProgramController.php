@@ -2,12 +2,14 @@
 // src/Controller/ProgramController.php
 namespace App\Controller;
 
+use App\Entity\Program;
+use App\Entity\Season;
+use App\Entity\Episode;
 use App\Repository\ProgramRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\Common\Collections\Criteria;
-use Doctrine\Common\Collections\Expr\Comparison;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Entity;
 
 #[Route('/program/', name: 'program_')]
 class ProgramController extends AbstractController
@@ -20,40 +22,27 @@ class ProgramController extends AbstractController
     }
 
     #[Route('{id<\d+>}', methods: ['GET'], name: 'show')]
-    public function show(int $id, ProgramRepository $programRepository): Response
+    public function show(Program $program): Response
     {
-        $program = $programRepository->findOneById($id);
-        if (!$program) {
-            throw $this->createNotFoundException(
-                'Pas de série avec l\'id : ' . $id
-            );
-        }
         $seasons = $program->getSeasons();
         return $this->render('program/show.html.twig', ['program' => $program, 'seasons' => $seasons]);
     }
 
     #[Route('{programId<\d+>}/season/{seasonId<\d+>}', methods: ['GET'], name: 'season_show')]
-    public function showSeason(int $programId, int $seasonId, ProgramRepository $programRepository): Response
+    #[Entity('program', options: ['id' => 'programId'])]
+    #[Entity('season', options: ['id' => 'seasonId'])]
+    public function showSeason(Program $program, Season $season): Response
     {
-        $program = $programRepository->findOneById($programId);
-        if (!$program) {
-            throw $this->createNotFoundException(
-                'Pas de série avec l\'id : ' . $programId
-            );
-        }
-
-        $seasons = $program->getSeasons();
-        $comparison = new Comparison('id', '=', $seasonId);
-        $criteria = new Criteria();
-        $criteria->where($comparison);
-        $season = $seasons->matching($criteria)->current();
-        if (!$season) {
-            throw $this->createNotFoundException(
-                'La série n\'a pas de saison avec l\'id : ' . $seasonId
-            );
-        }
-
         $episodes = $season->getEpisodes();
         return $this->render('program/season_show.html.twig', ['program' => $program, 'season' => $season, 'episodes' => $episodes]);
+    }
+
+    #[Route('{programId<\d+>}/season/{seasonId<\d+>}/episode/{episodeId<\d+>}', methods: ['GET'], name: 'episode_show')]
+    #[Entity('program', options: ['id' => 'programId'])]
+    #[Entity('season', options: ['id' => 'seasonId'])]
+    #[Entity('episode', options: ['id' => 'episodeId'])]
+    public function showEpisode(Program $program, Season $season, Episode $episode): Response
+    {
+        return $this->render('program/episode_show.html.twig', ['program' => $program, 'season' => $season, 'episode' => $episode]);
     }
 }
